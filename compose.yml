@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:19beta4-trixie
+    ports:
+      - "5432:5432"
+    environment:
+      TZ: Europe/Berlin
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: p
+      POSTGRES_DB: fitnessstudio
+    volumes:
+      - pg_data:/var/lib/postgresql/19/docker
+    container_name: postgres
+volumes:
+  pg_data:
+    name: pg_data
