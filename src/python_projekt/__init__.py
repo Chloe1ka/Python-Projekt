@@ -1,4 +1,5 @@
 import hashlib
+from typing import Annotated
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
@@ -17,15 +18,15 @@ def hello() -> dict[str, str]:
     return {"message": "Hello World"}
 
 
-@app.get("/mitglieder", response_model=list[MitgliedRead])
+@app.get("/mitglieder")
 def list_mitglieder(
+    db: Annotated[Session, Depends(get_db)],
     nachname: str | None = None,
-    db: Session = Depends(get_db),
 ) -> list[MitgliedRead]:
     stmt = select(Mitglied)
     if nachname is not None:
         stmt = stmt.where(Mitglied.nachname == nachname)
-    return list(db.scalars(stmt).all())
+    return [MitgliedRead.model_validate(row) for row in db.scalars(stmt).all()]
 
 
 @app.get("/mitglieder/{mitglied_id}", response_model=MitgliedRead)
@@ -33,7 +34,7 @@ def get_mitglied(
     mitglied_id: int,
     request: Request,
     response: Response,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> MitgliedRead | Response:
     mitglied = db.get(Mitglied, mitglied_id)
     if mitglied is None:
@@ -44,7 +45,7 @@ def get_mitglied(
     if request.headers.get("If-None-Match") == etag:
         return Response(status_code=304, headers={"ETag": etag})
     response.headers["ETag"] = etag
-    return mitglied
+    return MitgliedRead.model_validate(mitglied)
 
 
 def main() -> None:
