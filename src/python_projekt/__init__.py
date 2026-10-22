@@ -1,5 +1,7 @@
+import hashlib
+
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -29,11 +31,19 @@ def list_mitglieder(
 @app.get("/mitglieder/{mitglied_id}", response_model=MitgliedRead)
 def get_mitglied(
     mitglied_id: int,
+    request: Request,
+    response: Response,
     db: Session = Depends(get_db),
-) -> MitgliedRead:
+) -> MitgliedRead | Response:
     mitglied = db.get(Mitglied, mitglied_id)
     if mitglied is None:
         raise HTTPException(status_code=404, detail="Mitglied nicht gefunden")
+    payload = f"{mitglied.id}|{mitglied.vorname}|{mitglied.nachname}|{mitglied.email}"
+    etag = f'"{hashlib.sha256(payload.encode()).hexdigest()}"'
+    # Conditional GET returns 304 when If-None-Match matches the member ETag.
+    if request.headers.get("If-None-Match") == etag:
+        return Response(status_code=304, headers={"ETag": etag})
+    response.headers["ETag"] = etag
     return mitglied
 
 
