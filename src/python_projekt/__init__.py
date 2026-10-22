@@ -1,4 +1,3 @@
-import hashlib
 from typing import Annotated
 
 import uvicorn
@@ -55,9 +54,8 @@ def get_mitglied(
     mitglied = db.get(Mitglied, mitglied_id)
     if mitglied is None:
         raise HTTPException(status_code=404, detail="Mitglied nicht gefunden")
-    payload = f"{mitglied.id}|{mitglied.vorname}|{mitglied.nachname}|{mitglied.email}"
-    etag = f'"{hashlib.sha256(payload.encode()).hexdigest()}"'
-    # Conditional GET returns 304 when If-None-Match matches the member ETag.
+    etag = f'"{mitglied.version}"'
+    # Conditional GET returns 304 when If-None-Match matches the ETag (member version).
     if request.headers.get("If-None-Match") == etag:
         return Response(status_code=304, headers={"ETag": etag})
     response.headers["ETag"] = etag

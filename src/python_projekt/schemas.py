@@ -8,6 +8,7 @@ class MitgliedRead(BaseModel):
     vorname: str
     nachname: str
     email: str
+    version: int
 
 
 class MitgliedCreate(BaseModel):

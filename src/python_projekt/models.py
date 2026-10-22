@@ -13,3 +13,4 @@ class Mitglied(Base):
     vorname: Mapped[str] = mapped_column(Text)
     nachname: Mapped[str] = mapped_column(Text)
     email: Mapped[str] = mapped_column(Text)
+    version: Mapped[int] = mapped_column(nullable=False, default=0, server_default="0")

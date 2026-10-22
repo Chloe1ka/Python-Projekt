@@ -2,7 +2,8 @@ CREATE TABLE mitglied (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     vorname TEXT NOT NULL,
     nachname TEXT NOT NULL,
-    email TEXT NOT NULL
+    email TEXT NOT NULL,
+    version INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE vertrag (
