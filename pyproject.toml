@@ -18,6 +18,12 @@ build-backend = "uv_build"
 
 # https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups
 [dependency-groups]
+dev = [
+    # httpx genutzt von FastAPI
+    "httpx>=0.28.1,<1.0.0",
+    # https://pytest.org
+    "pytest>=9.1.0,<10.0.0",
+]
 lint = [
     # http://pyrefly.org https://github.com/facebook/pyrefly
     "pyrefly>=1.4.0-dev.2,<2.0.0",
