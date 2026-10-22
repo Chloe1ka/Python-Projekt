@@ -1,0 +1,33 @@
+info:
+  name: Update Mitglied
+  type: http
+  seq: 5
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/mitglieder/1"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: If-Match
+      value: '"0"'
+  body:
+    type: json
+    data: |-
+      {
+        "vorname": "Lina",
+        "nachname": "Berg",
+        "email": "lina.berg@fitness.example"
+      }
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "204"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

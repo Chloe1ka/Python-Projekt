@@ -62,5 +62,40 @@ def get_mitglied(
     return MitgliedRead.model_validate(mitglied)
 
 
+@app.put("/mitglieder/{mitglied_id}", status_code=204)
+def update_mitglied(
+    mitglied_id: int,
+    body: MitgliedCreate,
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+) -> Response:
+    if_match = request.headers.get("If-Match")
+    # Conditional PUT requires If-Match to equal the current ETag (member version).
+    if if_match is None:
+        raise HTTPException(status_code=428, detail="If-Match erforderlich")
+    if (
+        len(if_match) < 3
+        or not if_match.startswith('"')
+        or not if_match.endswith('"')
+    ):
+        raise HTTPException(status_code=412, detail="If-Match ungueltig")
+    try:
+        version = int(if_match[1:-1])
+    except ValueError:
+        raise HTTPException(status_code=412, detail="If-Match ungueltig") from None
+    mitglied = db.get(Mitglied, mitglied_id)
+    if mitglied is None:
+        raise HTTPException(status_code=404, detail="Mitglied nicht gefunden")
+    if mitglied.version != version:
+        raise HTTPException(status_code=412, detail="Version veraltet")
+    mitglied.vorname = body.vorname
+    mitglied.nachname = body.nachname
+    mitglied.email = body.email
+    mitglied.version += 1
+    db.commit()
+    db.refresh(mitglied)
+    return Response(status_code=204, headers={"ETag": f'"{mitglied.version}"'})
+
+
 def main() -> None:
     uvicorn.run(app, host="127.0.0.1", port=8001)
