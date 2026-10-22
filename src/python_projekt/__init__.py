@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from python_projekt.db import get_db
 from python_projekt.models import Mitglied
-from python_projekt.schemas import MitgliedRead
+from python_projekt.schemas import MitgliedCreate, MitgliedRead
 
 app = FastAPI()
 
@@ -27,6 +27,22 @@ def list_mitglieder(
     if nachname is not None:
         stmt = stmt.where(Mitglied.nachname == nachname)
     return [MitgliedRead.model_validate(row) for row in db.scalars(stmt).all()]
+
+
+@app.post("/mitglieder", status_code=201)
+def create_mitglied(
+    body: MitgliedCreate,
+    db: Annotated[Session, Depends(get_db)],
+) -> MitgliedRead:
+    mitglied = Mitglied(
+        vorname=body.vorname,
+        nachname=body.nachname,
+        email=body.email,
+    )
+    db.add(mitglied)
+    db.commit()
+    db.refresh(mitglied)
+    return MitgliedRead.model_validate(mitglied)
 
 
 @app.get("/mitglieder/{mitglied_id}", response_model=MitgliedRead)
